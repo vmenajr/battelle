@@ -8,8 +8,9 @@ Loaded it onto binary ninja cloud free https://cloud.binary.ninja/
 
 Ran the bugger and saw that it deletes itself :)
 
-Looking at strings and the disassembly it became clear it's looking for 'chow.down'
+Looking at strings and strace it became clear it's looking for a file called 'chow.down'
 ```
+strings billygoat
 ...
 *HACK HACK HA-HHRGGGGGUUGGGHHHH*
 Billygoat looks around... Angr fills his eyes.
@@ -32,6 +33,28 @@ __do_global_dtors_aux
 completed.7200
 __do_global_dtors_aux_fini_array_entry
 ...
+
+strace billygoat
+...
+write(1, "OH NO, here comes Billygoat!!\n", 30OH NO, here comes Billygoat!!
+) = 30
+rt_sigprocmask(SIG_BLOCK, [CHLD], [], 8) = 0
+rt_sigaction(SIGCHLD, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+nanosleep({tv_sec=2, tv_nsec=0}, 0xffb1a8ac) = 0
+write(1, "A vortex appears in the sky, col"..., 112A vortex appears in the sky, colors so magnificent, the force so powerful. *Billygoat appears ready for dinner*
+) = 112
+rt_sigprocmask(SIG_BLOCK, [CHLD], [], 8) = 0
+rt_sigaction(SIGCHLD, NULL, {sa_handler=SIG_DFL, sa_mask=[], sa_flags=0}, 8) = 0
+rt_sigprocmask(SIG_SETMASK, [], NULL, 8) = 0
+nanosleep({tv_sec=2, tv_nsec=0}, 0xffb1a8ac) = 0
+open("chow.down", O_RDONLY)             = -1 ENOENT (No such file or directory)
+write(1, "Billygoat looks around... Angr f"..., 47Billygoat looks around... Angr fills his eyes.
+) = 47
+close(-1)                               = -1 EBADF (Bad file descriptor)
+unlink("/tmp/billygoat")                = -1 EPERM (Operation not permitted)
+...
+
 ```
 
 Reading the 4 subroutines a pattern of byte compares emerges that is clearly looking for specific characters in the file.  Once I saw that I started crafting a file with those characters.  The last subroutine tries to pull a fast one by doubling the value of the character. 
